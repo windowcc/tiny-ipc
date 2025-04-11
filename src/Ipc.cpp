@@ -14,11 +14,11 @@ namespace ipc
 
 namespace
 {
-    #define HANDLE         (impl_->handle)
-    #define FRAGMENT       (impl_->fragment)
-    #define MODE           (impl_->mode)
-    #define CONNECTED      (impl_->connected)
-    #define CALLBACK       (impl_->callback)
+    #define HANDLE          (impl_->handle)
+    #define CACHE           (impl_->cache)
+    #define MODE            (impl_->mode)
+    #define CONNECTED       (impl_->connected)
+    #define CALLBACK        (impl_->callback)
 } // internal-linkage
 
 
@@ -27,15 +27,15 @@ template<typename Wr>
 struct Ipc<Wr>::IpcImpl
 {
     std::shared_ptr<MessageQueue<Choose<Segment>> > handle { nullptr };
-    std::shared_ptr<void> fragment {nullptr};
+    std::shared_ptr<void> cache {nullptr};
     unsigned mode { SENDER };
     std::atomic_bool connected { false };
     CallbackPtr callback {nullptr};
 };
 
 template <typename Wr>
-Ipc<Wr>::Ipc(char const * name, const unsigned &mode)
-    : impl_ {std::make_unique<Ipc<Wr>::IpcImpl>()}
+Ipc<Wr>::Ipc(char const *name, const unsigned &mode)
+    : impl_ { std::make_unique<Ipc<Wr>::IpcImpl>() }
 {
     connect(name, mode);
 }
@@ -93,10 +93,10 @@ bool Ipc<Wr>::connect(char const * name, const unsigned &mode)
     switch (mode)
     {
     case static_cast<unsigned>(SENDER):
-        FRAGMENT = std::make_shared<CaCheManager<CacheSender>>();
+        CACHE = std::make_shared<Cache<Sender>>();
         break;
     case static_cast<unsigned>(RECEIVER):
-        FRAGMENT = std::make_shared<CaCheManager<CacheReceiver>>();
+        CACHE = std::make_shared<Cache<Receiver>>();
         break;
     default:
         break;
@@ -258,7 +258,7 @@ bool Ipc<Wr>::write(void const *data, std::size_t size)
         return false;
     }
 
-    Description desc = std::static_pointer_cast<CaCheManager<CacheSender>>(FRAGMENT)->write(data,size,que->segment()->recv_count());
+    Description desc = std::static_pointer_cast<Cache<Sender>>(CACHE)->write(data,size,que->segment()->recv_count());
     if(!desc.length() || !que->push(desc))
     {
         if(CALLBACK)
@@ -340,7 +340,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
             {
                 if(!que->pop(desc,[&](bool) -> bool
                 {
-                    return std::static_pointer_cast<CaCheManager<CacheReceiver>>(FRAGMENT)->read(desc,[&](const Buffer *buf) -> void
+                    return std::static_pointer_cast<Cache<Receiver>>(CACHE)->read(desc,[&](const Buffer *buf) -> void
                     {
                         CALLBACK->message_arrived(buf);
                     });

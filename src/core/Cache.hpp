@@ -38,10 +38,10 @@ static std::string thread_id_to_string(const uint32_t &id)
 // Just need to add a lock on the writer end
 // When releasing memory, it will first determine whether the usage count of the current memory segment has been reset.
 // Therefore, there is no need to perform a locking operation
-class CacheSender
+class Sender
 {
 public:
-    CacheSender()
+    Sender()
         : handle_ {}
         , pool_ {nullptr}
     {
@@ -67,7 +67,7 @@ public:
         pool_ = std::make_shared<std::pmr::monotonic_buffer_resource>(handle_.get(),handle_.size(),
                     std::pmr::null_memory_resource());
     }
-    ~CacheSender()
+    ~Sender()
     {
         // free all apply memory
         // There may be some memory that has not been read properly
@@ -162,15 +162,15 @@ private:
 };
 
 
-class CacheReceiver
+class Receiver
 {
 public:
-    CacheReceiver()
+    Receiver()
         : handles_()
     {
         
     }
-    ~CacheReceiver()
+    ~Receiver()
     {
         handles_.clear();
     }
@@ -234,30 +234,28 @@ template<typename T>
 struct is_sender{};
 
 template<>
-struct is_sender<CacheSender>
+struct is_sender<Sender>
 {
     static const bool value = true;
 };
 
 template<>
-struct is_sender<CacheReceiver>
+struct is_sender<Receiver>
 {
     static const bool value = false;
 };
 
 template<typename T>
-class CaCheManager
+class Cache
 {
 public:
-    CaCheManager()
+    Cache()
         :cache_ {std::make_unique<T>()}
     {
-
     }
 
-    ~CaCheManager()
+    ~Cache()
     {
-
     }
 public:
     template <typename U = T>
