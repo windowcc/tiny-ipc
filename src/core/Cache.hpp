@@ -3,6 +3,7 @@
 
 #include <config.h>
 #include <thread>
+#include <type_traits>
 #include <sstream>
 #include <memory>
 #include <functional>
@@ -34,48 +35,39 @@ static std::string thread_id_to_string(const uint32_t &id)
     return oss.str();
 }
 
-class CacheBase
-{
-public:
-    CacheBase() = default;
-    virtual ~CacheBase() = default;
-
-public:
-    virtual bool init() = 0;
-    // SENDER
-    virtual Description write(void const *data, const std::size_t &size,const uint32_t &cnt)
-    {
-        return {};
-    }
-
-    // RECEIVER
-    virtual bool read(const Description &desc, std::function<void(const Buffer *)> callbacK)
-    {
-        return {};
-    }
-};
-
-template<unsigned>
-class Cache;
-
-
 // Just need to add a lock on the writer end
 // When releasing memory, it will first determine whether the usage count of the current memory segment has been reset.
 // Therefore, there is no need to perform a locking operation
-template<>
-class Cache<SENDER> : public CacheBase
+class CacheSender
 {
 public:
-    Cache<SENDER>()
-        : CacheBase()
-        , handle_ {}
+    CacheSender()
+        : handle_ {}
         , pool_ {nullptr}
     {
         auto thread_id = std::this_thread::get_id();
         id_ = *(uint32_t*)&thread_id;
-    }
 
-    virtual ~Cache<SENDER>()
+
+        auto name = DEFAULT_SHM_NAME + thread_id_to_string(id_);
+        if (!handle_.acquire(name.c_str(), DEFAULT_CACHE_SIZE))
+        {
+            return ;
+        }
+
+        // Create a new lock, if it does not exist
+        if(locks.find(std::string(handle_.name())) == locks.end())
+        {
+            locks.insert(
+                {std::string(handle_.name()),std::make_shared<SpinLock>()}
+            );
+        }
+
+        // std::pmr 
+        pool_ = std::make_shared<std::pmr::monotonic_buffer_resource>(handle_.get(),handle_.size(),
+                    std::pmr::null_memory_resource());
+    }
+    ~CacheSender()
     {
         // free all apply memory
         // There may be some memory that has not been read properly
@@ -94,33 +86,8 @@ public:
     }
 
 public:
-    virtual bool init() final
+    Description write(void const *data, const std::size_t &size,const uint32_t &cnt)
     {
-        // Apply for shared memory space
-        auto name = DEFAULT_SHM_NAME + thread_id_to_string(id_);
-        if (!handle_.acquire(name.c_str(), DEFAULT_CACHE_SIZE))
-        {
-            return false;
-        }
-
-        // Create a new lock, if it does not exist
-        if(locks.find(std::string(handle_.name())) == locks.end())
-        {
-            locks.insert(
-                {std::string(handle_.name()),std::make_shared<SpinLock>()}
-            );
-        }
-
-        // std::pmr 
-        pool_ = std::make_shared<std::pmr::monotonic_buffer_resource>(handle_.get(),handle_.size(),
-                    std::pmr::null_memory_resource());
-
-        return true;
-    }
-
-    virtual Description write(void const *data, const std::size_t &size,const uint32_t &cnt) final
-    {
-        
         std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
         recyle_memory(now);
 
@@ -155,6 +122,11 @@ public:
         };
     }
 
+    bool read(const Description &desc, std::function<void(const Buffer *)> callback)
+    {
+        return true;
+    }
+
 private:
     void recyle_memory(const std::chrono::time_point<std::chrono::steady_clock> &now)
     {
@@ -165,7 +137,8 @@ private:
         for (auto it = map_.begin(); it != map_.end();)
         {
             std::atomic<uint32_t> *count = static_cast<std::atomic<uint32_t>*>(it->first);
-            if(!count->load() || (std::chrono::duration_cast<std::chrono::milliseconds>(now - std::get<1>(it->second)).count() >= DEFAULT_TIMEOUT_VALUE))
+            if(!count->load() ||
+                (std::chrono::duration_cast<std::chrono::milliseconds>(now - std::get<1>(it->second)).count() >= DEFAULT_TIMEOUT_VALUE))
             {
                 pool_->deallocate(it->first,std::get<0>(it->second));
                 it = map_.erase(it);
@@ -176,7 +149,6 @@ private:
             }
         }
     }
-
 private:
     // thread id
     uint32_t id_;
@@ -185,31 +157,31 @@ private:
     // shared memory manager
     std::shared_ptr<std::pmr::monotonic_buffer_resource> pool_;
     // already memory using map
-    std::unordered_map<void*,std::tuple<std::size_t,std::chrono::time_point<std::chrono::steady_clock>>> map_;
+    std::unordered_map<void*,
+        std::tuple<std::size_t,std::chrono::time_point<std::chrono::steady_clock>>> map_;
 };
 
-template<>
-class Cache<RECEIVER> : public CacheBase
+
+class CacheReceiver
 {
 public:
-    Cache<RECEIVER>()
-        : CacheBase()
-        , handles_()
+    CacheReceiver()
+        : handles_()
     {
         
     }
-
-    virtual ~Cache<RECEIVER>()
+    ~CacheReceiver()
     {
         handles_.clear();
     }
 public:
-    virtual bool init() final
+
+    Description write(void const *data, const std::size_t &size,const uint32_t &cnt)
     {
-        return true;
+        return Description();
     }
 
-    virtual bool read(const Description &desc, std::function<void(const Buffer *)> callback) final
+    bool read(const Description &desc, std::function<void(const Buffer *)> callback)
     {
         Handle *handle = get_handle(desc.id());
         if(!handle || !callback)
@@ -226,6 +198,7 @@ public:
         static_cast<std::atomic<uint32_t>*>(pool_data)->fetch_sub(1, std::memory_order_relaxed);
         return !(*static_cast<std::atomic<uint32_t>*>(pool_data));
     }
+
 private:
 
     Handle *get_handle(const uint32_t &id)
@@ -255,6 +228,54 @@ private:
 
 private:
     std::unordered_map<uint32_t,Handle> handles_;
+};
+
+template<typename T>
+struct is_sender{};
+
+template<>
+struct is_sender<CacheSender>
+{
+    static const bool value = true;
+};
+
+template<>
+struct is_sender<CacheReceiver>
+{
+    static const bool value = false;
+};
+
+template<typename T>
+class CaCheManager
+{
+public:
+    CaCheManager()
+        :cache_ {std::make_unique<T>()}
+    {
+
+    }
+
+    ~CaCheManager()
+    {
+
+    }
+public:
+    template <typename U = T>
+    auto write(void const *data, const std::size_t &size,const uint32_t &cnt) 
+        -> std::enable_if_t<ipc::detail::is_sender<U>::value, Description>
+    {
+        return cache_->write(data,size,cnt);
+    }
+
+    template <typename U = T>
+    auto read(const Description &desc, std::function<void(const Buffer *)> callback)
+        -> std::enable_if_t<!ipc::detail::is_sender<U>::value, bool>
+    {
+        return cache_->read(desc,callback);
+    }
+
+private:
+    std::unique_ptr<T> cache_;
 };
 
 } // namespace detail

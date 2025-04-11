@@ -26,9 +26,8 @@ namespace
 template<typename Wr>
 struct Ipc<Wr>::IpcImpl
 {
-    // 用于发送描述信息
     std::shared_ptr<MessageQueue<Choose<Segment>> > handle { nullptr };
-    std::unique_ptr<CacheBase> fragment {nullptr};
+    std::shared_ptr<void> fragment {nullptr};
     unsigned mode { SENDER };
     std::atomic_bool connected { false };
     CallbackPtr callback {nullptr};
@@ -94,22 +93,13 @@ bool Ipc<Wr>::connect(char const * name, const unsigned &mode)
     switch (mode)
     {
     case static_cast<unsigned>(SENDER):
-        FRAGMENT = std::make_unique<Cache<SENDER>>();
+        FRAGMENT = std::make_shared<CaCheManager<CacheSender>>();
         break;
     case static_cast<unsigned>(RECEIVER):
-        FRAGMENT = std::make_unique<Cache<RECEIVER>>();
+        FRAGMENT = std::make_shared<CaCheManager<CacheReceiver>>();
         break;
     default:
         break;
-    }
-
-    if(!FRAGMENT->init())
-    {
-        if(CALLBACK)
-        {
-            CALLBACK->connected(ErrorCode::IPC_ERR_NOINIT);
-        }
-        return false;
     }
 
     disconnect();
@@ -268,7 +258,7 @@ bool Ipc<Wr>::write(void const *data, std::size_t size)
         return false;
     }
 
-    auto desc = FRAGMENT->write(data,size,que->segment()->recv_count());
+    Description desc = std::static_pointer_cast<CaCheManager<CacheSender>>(FRAGMENT)->write(data,size,que->segment()->recv_count());
     if(!desc.length() || !que->push(desc))
     {
         if(CALLBACK)
@@ -350,7 +340,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
             {
                 if(!que->pop(desc,[&](bool) -> bool
                 {
-                    return FRAGMENT->read(desc,[&](const Buffer *buf) -> void
+                    return std::static_pointer_cast<CaCheManager<CacheReceiver>>(FRAGMENT)->read(desc,[&](const Buffer *buf) -> void
                     {
                         CALLBACK->message_arrived(buf);
                     });
