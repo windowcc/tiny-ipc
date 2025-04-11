@@ -159,7 +159,7 @@ public:
         return !valid() || (cursor_ == segment_->wr());
     }
 
-    template <typename Descriptor, typename... P>
+    template <typename Description, typename... P>
     bool push(P &&...params)
     {
         if (segment_ == nullptr || sender_flag_ == false)
@@ -168,12 +168,12 @@ public:
         }
         return segment_->push(this, [&](void *p)
         {
-            ::new (p) Descriptor(std::forward<P>(params)...);
+            ::new (p) Description(std::forward<P>(params)...);
         });
     }
 
-    template <typename Descriptor, typename F>
-    bool pop(Descriptor &item, F &&out)
+    template <typename Description, typename F>
+    bool pop(Description &item, F &&out)
     {
         if (segment_ == nullptr || sender_flag_ == false)
         {
@@ -181,7 +181,7 @@ public:
         }
         return segment_->pop(this, cursor_, [&item](void *p)
         {
-            ::new (&item) Descriptor(std::move(*static_cast<Descriptor *>(p)));
+            ::new (&item) Description(std::move(*static_cast<Description *>(p)));
         }, std::forward<F>(out));
     }
 
@@ -199,20 +199,20 @@ private:
 
 } // namespace detail
 
-template <typename Descriptor, typename Choose>
-class Queue final : public detail::QueueBase<typename Choose::template segment_t<sizeof(Descriptor), alignof(Descriptor)>>
+template <typename Description, typename Choose>
+class Queue final : public detail::QueueBase<typename Choose::template segment_t<sizeof(Description), alignof(Description)>>
 {
-    using base_t = detail::QueueBase<typename Choose::template segment_t<sizeof(Descriptor), alignof(Descriptor)>>;
+    using base_t = detail::QueueBase<typename Choose::template segment_t<sizeof(Description), alignof(Description)>>;
 
 public:
     template <typename... P>
     bool push(P &&...params)
     {
-        return base_t::template push<Descriptor>(std::forward<P>(params)...);
+        return base_t::template push<Description>(std::forward<P>(params)...);
     }
 
     template <typename F>
-    bool pop(Descriptor &item, F &&out)
+    bool pop(Description &item, F &&out)
     {
         return base_t::pop(item, std::forward<F>(out));
     }

@@ -2,7 +2,7 @@ set(${PROJECT_NAME}_source_files
     Buffer.cpp
     Ipc.cpp
     Handle.cpp
-    Descriptor.cpp
+    Description.cpp
 )
 set(${PROJECT_NAME}_core_source_files
     core/Connection.cpp

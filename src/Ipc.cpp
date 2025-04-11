@@ -301,7 +301,7 @@ bool Ipc<Wr>::write(std::string const & str)
     return this->write(str.c_str(), str.size());
 }
 
-static std::string thread_id_to_string(const std::thread::id &id)
+static std::string thread_id_to_string(const uint32_t &id)
 {
     std::ostringstream oss;
     oss << id;
@@ -345,7 +345,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
 
         HANDLE->wait_for([&]
         {
-            Descriptor desc{};
+            Description desc{};
             while(!que->empty())
             {
                 if(!que->pop(desc,[&](bool) -> bool

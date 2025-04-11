@@ -9,15 +9,15 @@ namespace ipc
 namespace detail
 {
 
-class Descriptor
+class Description
 {
 public:
-    Descriptor();
-    Descriptor(const std::thread::id &id,const std::size_t &offset, const std::size_t &len);
-    ~Descriptor();
+    Description();
+    Description(const uint32_t &id,const std::size_t &offset, const std::size_t &len);
+    ~Description();
 public:
-    void id(const std::thread::id &id);
-    std::thread::id id() const;
+    void id(const uint32_t &id);
+    uint32_t id() const;
 
     void offset(const std::size_t &offset);
     std::size_t offset() const;
@@ -27,7 +27,7 @@ public:
 
 private:
     // data storage file name generate
-    std::thread::id id_;
+    uint32_t id_;
     // data offset
     std::size_t offset_;
     // data length

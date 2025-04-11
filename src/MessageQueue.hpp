@@ -2,7 +2,7 @@
 #define _IPC_CONNECT_INFO_H_
 
 #include <Queue.hpp>
-#include <Descriptor.h>
+#include <Description.h>
 #include <sync/Waiter.h>
 
 namespace ipc
@@ -70,7 +70,7 @@ public:
 private:
     std::string prefix_;
     std::string name_;
-    Queue<Descriptor, Choose> queue_;
+    Queue<Description, Choose> queue_;
 };
 
 

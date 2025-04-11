@@ -27,7 +27,7 @@ static constexpr uint32_t DEFAULT_TIMEOUT_VALUE = 10 * 1000; // mill
 static std::unordered_map<std::string, std::shared_ptr<SpinLock>> locks;
     
 
-static std::string thread_id_to_string(const std::thread::id &id)
+static std::string thread_id_to_string(const uint32_t &id)
 {
     std::ostringstream oss;
     oss << id;
@@ -43,13 +43,13 @@ public:
 public:
     virtual bool init() = 0;
     // SENDER
-    virtual Descriptor write(void const *data, const std::size_t &size,const uint32_t &cnt)
+    virtual Description write(void const *data, const std::size_t &size,const uint32_t &cnt)
     {
         return {};
     }
 
     // RECEIVER
-    virtual bool read(const Descriptor &desc, std::function<void(const Buffer *)> callbacK)
+    virtual bool read(const Description &desc, std::function<void(const Buffer *)> callbacK)
     {
         return {};
     }
@@ -68,11 +68,11 @@ class Cache<SENDER> : public CacheBase
 public:
     Cache<SENDER>()
         : CacheBase()
-        , id_{std::this_thread::get_id()}
         , handle_ {}
         , pool_ {nullptr}
     {
-        
+        auto thread_id = std::this_thread::get_id();
+        id_ = *(uint32_t*)&thread_id;
     }
 
     virtual ~Cache<SENDER>()
@@ -118,7 +118,7 @@ public:
         return true;
     }
 
-    virtual Descriptor write(void const *data, const std::size_t &size,const uint32_t &cnt) final
+    virtual Description write(void const *data, const std::size_t &size,const uint32_t &cnt) final
     {
         
         std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
@@ -179,7 +179,7 @@ private:
 
 private:
     // thread id
-    std::thread::id id_;
+    uint32_t id_;
     // shm handle
     Handle handle_;
     // shared memory manager
@@ -209,7 +209,7 @@ public:
         return true;
     }
 
-    virtual bool read(const Descriptor &desc, std::function<void(const Buffer *)> callback) final
+    virtual bool read(const Description &desc, std::function<void(const Buffer *)> callback) final
     {
         Handle *handle = get_handle(desc.id());
         if(!handle || !callback)
@@ -228,7 +228,7 @@ public:
     }
 private:
 
-    Handle *get_handle(const std::thread::id &id)
+    Handle *get_handle(const uint32_t &id)
     {
         auto it = handles_.find(id);
         if(it == handles_.end())
@@ -254,7 +254,7 @@ private:
     }
 
 private:
-    std::unordered_map<std::thread::id,Handle> handles_;
+    std::unordered_map<uint32_t,Handle> handles_;
 };
 
 } // namespace detail
