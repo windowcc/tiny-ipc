@@ -200,7 +200,8 @@ private:
 } // namespace detail
 
 template <typename Description, typename Choose>
-class Queue final : public detail::QueueBase<typename Choose::template segment_t<sizeof(Description), alignof(Description)>>
+class Queue final : 
+    public detail::QueueBase<typename Choose::template segment_t<sizeof(Description), alignof(Description)>>
 {
     using base_t = detail::QueueBase<typename Choose::template segment_t<sizeof(Description), alignof(Description)>>;
 

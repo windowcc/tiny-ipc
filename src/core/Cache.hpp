@@ -7,7 +7,6 @@
 #include <sstream>
 #include <memory>
 #include <functional>
-#include <iostream>
 #include <unordered_map>
 #include <memory_resource>
 #include <ipc/def.h>
@@ -19,7 +18,6 @@ namespace ipc
 namespace detail
 {
 
-static constexpr uint32_t DEFAULT_WRITE_CNT = 1;
 static constexpr std::size_t DEFAULT_CACHE_SIZE = 1024 * 1024 * 1024; // 1G
 static const std::string DEFAULT_SHM_NAME = "tiny_ipc_";
 static constexpr uint32_t DEFAULT_TIMEOUT_VALUE = 10 * 1000; // mill
@@ -86,7 +84,7 @@ public:
     }
 
 public:
-    Description write(void const *data, const std::size_t &size,const uint32_t &cnt)
+    std::shared_ptr<void> write(void const *data, const std::size_t &size,const uint32_t &cnt)
     {
         std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
         recyle_memory(now);
@@ -114,17 +112,12 @@ public:
             {pool_data,std::make_tuple(pool_size,now)}
         );
 
-        return
-        {
+        return std::make_shared<Description>
+        (
             id_,
             reinterpret_cast<std::size_t>(pool_data) - reinterpret_cast<std::size_t>(handle_.get()),
             pool_size
-        };
-    }
-
-    bool read(const Description &desc, std::function<void(const Buffer *)> callback)
-    {
-        return true;
+        );
     }
 
 private:
@@ -175,11 +168,6 @@ public:
         handles_.clear();
     }
 public:
-
-    Description write(void const *data, const std::size_t &size,const uint32_t &cnt)
-    {
-        return Description();
-    }
 
     bool read(const Description &desc, std::function<void(const Buffer *)> callback)
     {
@@ -260,7 +248,7 @@ public:
 public:
     template <typename U = T>
     auto write(void const *data, const std::size_t &size,const uint32_t &cnt) 
-        -> std::enable_if_t<ipc::detail::is_sender<U>::value, Description>
+        -> std::enable_if_t<ipc::detail::is_sender<U>::value, std::shared_ptr<void>>
     {
         return cache_->write(data,size,cnt);
     }

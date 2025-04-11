@@ -12,7 +12,6 @@ namespace ipc
 namespace detail
 {
 
-// 高位是receiver,低位是sender
 class Connection
 {
 public:

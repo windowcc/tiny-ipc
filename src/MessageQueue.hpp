@@ -74,8 +74,6 @@ private:
 };
 
 
-
-
 } // namespace detail
 } // namespace ipc
 

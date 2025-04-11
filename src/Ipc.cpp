@@ -258,8 +258,10 @@ bool Ipc<Wr>::write(void const *data, std::size_t size)
         return false;
     }
 
-    Description desc = std::static_pointer_cast<Cache<Sender>>(CACHE)->write(data,size,que->segment()->recv_count());
-    if(!desc.length() || !que->push(desc))
+    auto desc = std::static_pointer_cast<Description>( 
+        std::static_pointer_cast<Cache<Sender>>(CACHE)->write(data,size,que->segment()->recv_count())
+    );
+    if(!desc->length() || !que->push(*desc))
     {
         if(CALLBACK)
         {
