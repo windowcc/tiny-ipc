@@ -4,7 +4,7 @@
 #include <iostream>
 #include <atomic>
 #include <thread>
-#include <ipc/Ipc.h>
+#include <ipc/ipc.h>
 
 namespace {
 

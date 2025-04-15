@@ -67,7 +67,6 @@ void benchmark_lc(int w, int r, char const * message) {
 
 void test_lock_performance(int w, int r) {
     std::cout << "test_lock_performance: [" << w << "-" << r << "]" << std::endl;
-    benchmark_lc<ipc::detail::RwLock>(w, r, "ipc::detail::RwLock");
     benchmark_lc<lc_wrapper< ipc::detail::SpinLock>>(w, r, "ipc::detail::SpinLock");
     benchmark_lc<lc_wrapper<std::mutex>     >(w, r, "std::mutex");
     // benchmark_lc<std::shared_mutex          >(w, r, "std::shared_mutex");

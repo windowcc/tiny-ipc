@@ -1,13 +1,12 @@
 #ifndef _IPC_QUEUE_H_
 #define _IPC_QUEUE_H_
 
-#include <type_traits>
 #include <tuple>
 #include <cassert>
-#include <Handle.h>
-#include <sync/RwLock.h>
-#include <Resource.hpp>
-#include <sync/Waiter.h>
+#include <type_traits>
+#include "handle.h"
+#include "resource.hpp"
+#include "sync/waiter.h"
 
 namespace ipc
 {

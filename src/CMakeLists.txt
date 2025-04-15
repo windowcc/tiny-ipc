@@ -1,18 +1,18 @@
 set(${PROJECT_NAME}_source_files
-    Buffer.cpp
-    Ipc.cpp
-    Handle.cpp
-    Description.cpp
+    buffer.cpp
+    ipc.cpp
+    handle.cpp
+    description.cpp
 )
 set(${PROJECT_NAME}_core_source_files
-    core/Connection.cpp
-    core/Content.cpp
+    core/connection.cpp
+    core/content.cpp
 )
 
 set(${PROJECT_NAME}_sync_source_files
-    sync/Condition.cpp
-    sync/Mutex.cpp
-    sync/Waiter.cpp
+    sync/condition.cpp
+    sync/mutex.cpp
+    sync/waiter.cpp
 )
 
 if (LIBIPC_BUILD_SHARED_LIBS)

@@ -17,6 +17,20 @@ enum : unsigned
     RECEIVER
 };
 
+enum class ErrorCode : uint8_t
+{
+	IPC_ERR_SUCCESS = 0,
+    IPC_ERR_NOINIT,
+	IPC_ERR_NOMEM,
+	IPC_ERR_INVAL,
+	IPC_ERR_NO_CONN,
+	IPC_ERR_CONN_REFUSED,
+	IPC_ERR_NOT_FOUND,
+	IPC_ERR_CONN_LOST,
+	IPC_ERR_NOT_SUPPORTED,
+	IPC_ERR_UNKNOWN,
+};
+
 enum class TimeOut : std::uint64_t
 {
     DEFAULT_TIMEOUT = 100, // ms

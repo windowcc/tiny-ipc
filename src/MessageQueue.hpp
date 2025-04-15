@@ -1,9 +1,9 @@
 #ifndef _IPC_CONNECT_INFO_H_
 #define _IPC_CONNECT_INFO_H_
 
-#include <Queue.hpp>
-#include <Description.h>
-#include <sync/Waiter.h>
+#include "Queue.hpp"
+#include "description.h"
+#include "sync/waiter.h"
 
 namespace ipc
 {
