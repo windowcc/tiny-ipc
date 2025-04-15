@@ -181,9 +181,9 @@ public:
         });
     }
 
-    template <typename Description, typename F>
+    template <typename D, typename F>
     bool pop(
-        Description &item,
+        D &item,
         F &&out)
     {
         if (segment_ == nullptr || sender_flag_ == false)
@@ -192,7 +192,7 @@ public:
         }
         return segment_->pop(this, cursor_, [&item](void *p)
         {
-            ::new (&item) Description(std::move(*static_cast<Description *>(p)));
+            ::new (&item) D(std::move(*static_cast<D *>(p)));
         }, std::forward<F>(out));
     }
 
@@ -210,23 +210,23 @@ private:
 
 } // namespace detail
 
-template <typename Description, typename Choose>
+template <typename D, typename Choose>
 class Queue final : 
-    public detail::QueueBase<typename Choose::template segment_t<sizeof(Description), alignof(Description)>>
+    public detail::QueueBase<typename Choose::template segment_t<sizeof(D), alignof(D)>>
 {
-    using base_t = detail::QueueBase<typename Choose::template segment_t<sizeof(Description), alignof(Description)>>;
+    using base_t = detail::QueueBase<typename Choose::template segment_t<sizeof(D), alignof(D)>>;
 
 public:
     template <typename... P>
     bool push(
         P &&...params)
     {
-        return base_t::template push<Description>(std::forward<P>(params)...);
+        return base_t::template push<D>(std::forward<P>(params)...);
     }
 
     template <typename F>
     bool pop(
-        Description &item,
+        D &item,
         F &&out)
     {
         return base_t::pop(item, std::forward<F>(out));
