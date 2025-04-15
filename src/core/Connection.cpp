@@ -18,13 +18,13 @@ Connection::Connection()
 
 Connection::~Connection()
 {
-    auto guard = std::unique_lock(lcc_);
+    std::unique_lock<SpinLock> guard(lcc_);
     cc_.reset();
 }
 
 uint32_t Connection::connect(const unsigned &mode) noexcept
 {
-    auto guard = std::unique_lock(lcc_);
+    auto guard = std::unique_lock<SpinLock>(lcc_);
 
     uint32_t start_pos = (mode == SENDER) ? 0 : (MAX_CONNECTIONS / 2);
     uint32_t end_pos = (mode == SENDER) ?  (MAX_CONNECTIONS / 2) : MAX_CONNECTIONS;
@@ -46,14 +46,14 @@ uint32_t Connection::connect(const unsigned &mode) noexcept
 
 uint32_t Connection::disconnect(const unsigned &mode,uint32_t cc_id) noexcept
 {
-    auto guard = std::unique_lock(lcc_);
+    std::unique_lock<SpinLock> guard(lcc_);
     cc_.reset(cc_id - 1);
     return cc_id;
 }
 
 uint32_t Connection::Connection::connections() noexcept
 {
-    auto guard = std::unique_lock(lcc_);
+    std::unique_lock<SpinLock> guard(lcc_);
     return cc_.count();
 }
 
@@ -61,7 +61,7 @@ uint32_t Connection::recv_count() noexcept
 {
     std::bitset<MAX_CONNECTIONS> bitset(
         std::string(MAX_CONNECTIONS / 2, '1') + std::string(MAX_CONNECTIONS / 2, '0'));
-    auto guard = std::unique_lock(lcc_);
+    std::unique_lock<SpinLock> guard(lcc_);
     return (bitset & cc_).count();
 }
 

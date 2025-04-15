@@ -8,6 +8,7 @@
 #include <ipc/def.h>
 #include <ipc/Buffer.h>
 #include <ipc/Callback.h>
+#include <ipc/ErrorCode.h>
 
 namespace ipc
 {

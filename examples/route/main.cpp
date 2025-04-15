@@ -32,7 +32,7 @@ void do_send()
 class SendCallback : public ipc::Callback
 {
 public:
-    virtual void message_arrived(const ipc::Buffer *buf /*msg*/) final{
+    virtual void message_arrived(const ipc::Buffer *buf /*msg*/, const ipc::ErrorCode &cause) final{
         std::cout << "read size: " << std::string((char*)buf->data(),buf->size()) << "\n";
     }
 };

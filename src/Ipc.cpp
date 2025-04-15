@@ -26,7 +26,7 @@ namespace
 template<typename Wr>
 struct Ipc<Wr>::IpcImpl
 {
-    std::shared_ptr<MessageQueue<Choose<Segment>> > handle { nullptr };
+    std::unique_ptr<MessageQueue<Choose<Segment>> > handle { nullptr };
     std::shared_ptr<void> cache {nullptr};
     unsigned mode { SENDER };
     std::atomic_bool connected { false };
@@ -105,7 +105,7 @@ bool Ipc<Wr>::connect(char const * name, const unsigned &mode)
     disconnect();
     if(!valid())
     {
-        HANDLE = std::make_shared<MessageQueue<Choose<Segment>>>(nullptr,name);
+        HANDLE = std::make_unique<MessageQueue<Choose<Segment>>>(nullptr,name);
         if(!HANDLE->init())
         {
             if(CALLBACK)
@@ -307,7 +307,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
     {
         if(CALLBACK)
         {
-            CALLBACK->message_arrived(ErrorCode::IPC_ERR_NOMEM);
+            CALLBACK->message_arrived(nullptr, ErrorCode::IPC_ERR_NOMEM);
         }
         return ;
     }
@@ -316,7 +316,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
     {
         if(CALLBACK)
         {
-            CALLBACK->message_arrived(ErrorCode::IPC_ERR_NOMEM);
+            CALLBACK->message_arrived(nullptr, ErrorCode::IPC_ERR_NOMEM);
         }
         return ;
     }
@@ -324,7 +324,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
     {
         if(CALLBACK)
         {
-            CALLBACK->message_arrived(ErrorCode::IPC_ERR_NO_CONN);
+            CALLBACK->message_arrived(nullptr, ErrorCode::IPC_ERR_NO_CONN);
         }
         return ;
     }

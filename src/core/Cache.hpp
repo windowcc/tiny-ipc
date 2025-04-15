@@ -61,7 +61,7 @@ public:
             );
         }
 
-        // std::pmr 
+        // using monotonic_buffer_resource = std::pmr::monotonic_buffer_resource;
         pool_ = std::make_shared<std::pmr::monotonic_buffer_resource>(handle_.get(),handle_.size(),
                     std::pmr::null_memory_resource());
     }
@@ -168,7 +168,6 @@ public:
         handles_.clear();
     }
 public:
-
     bool read(const Description &desc, std::function<void(const Buffer *)> callback)
     {
         Handle *handle = get_handle(desc.id());
@@ -188,7 +187,6 @@ public:
     }
 
 private:
-
     Handle *get_handle(const uint32_t &id)
     {
         auto it = handles_.find(id);

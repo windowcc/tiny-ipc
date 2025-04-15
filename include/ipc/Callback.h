@@ -43,13 +43,13 @@ public:
      * @brief Message arrival callback function
      * 
      */
-	virtual void message_arrived(const Buffer *buf /*msg*/) {}
+	virtual void message_arrived(const Buffer *buf /*msg*/,const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
 
     /**
      * @brief Message arrival callback function
      * 
      */
-    virtual void message_arrived(const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
+    // virtual void message_arrived(const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
 
     /**
      * @brief Message sending callback function
