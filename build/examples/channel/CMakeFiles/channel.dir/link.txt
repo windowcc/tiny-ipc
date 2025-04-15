@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/channel.dir/main.cpp.o -o channel  -Wl,-rpath,/home/charley/tiny-ipc/build/lib ../../lib/libtiny-ipc.so -lpthread -lrt 

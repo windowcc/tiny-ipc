@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/route.dir/main.cpp.o -o route  -Wl,-rpath,/home/charley/tiny-ipc/build/lib ../../lib/libtiny-ipc.so -lpthread -lrt 
