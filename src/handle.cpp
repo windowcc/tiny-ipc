@@ -19,7 +19,9 @@ struct info_t
     std::atomic<std::int32_t> acc_;
 };
 
-inline auto &acc_of(void *mem, std::size_t size)
+inline auto &acc_of(
+    void *mem,
+    std::size_t size)
 {
     return reinterpret_cast<info_t *>(static_cast<uint8_t *>(mem) + size - sizeof(info_t))->acc_;
 }
@@ -39,13 +41,17 @@ Handle::Handle()
 {
 }
 
-Handle::Handle(char const *name, std::size_t size, unsigned mode)
+Handle::Handle(
+    char const *name,
+    std::size_t size,
+    unsigned mode)
     : Handle()
 {
     acquire(name, size, mode);
 }
 
-Handle::Handle(Handle &&rhs)
+Handle::Handle(
+    Handle &&rhs)
     : Handle()
 {
     fd_ = rhs.fd_;
@@ -66,7 +72,8 @@ Handle::~Handle()
 }
 
 
-Handle &Handle::operator=(Handle rhs)
+Handle &Handle::operator=(
+    Handle rhs)
 {
     fd_ = rhs.fd_;
     rhs.fd_ = -1;
@@ -111,7 +118,10 @@ void Handle::sub_ref() noexcept
     acc_of(mem_, size_).fetch_sub(1, std::memory_order_acq_rel);
 }
 
-bool Handle::acquire(char const *name, std::size_t size, unsigned mode)
+bool Handle::acquire(
+    char const *name,
+    std::size_t size,
+    unsigned mode)
 {
     release();
 

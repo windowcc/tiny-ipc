@@ -14,7 +14,8 @@ namespace ipc {
  * @return true 
  * @return false 
  */
-constexpr bool is_valid_string(char const *str) noexcept
+constexpr bool is_valid_string(
+    char const *str) noexcept
 {
     return (str != nullptr) && (str[0] != '\0');
 }
@@ -25,7 +26,8 @@ constexpr bool is_valid_string(char const *str) noexcept
  * @param str 
  * @return std::string 
  */
-inline std::string make_string(char const *str)
+inline std::string make_string(
+    char const *str)
 {
     return is_valid_string(str) ? std::string{str} : std::string{};
 }
@@ -37,7 +39,9 @@ inline std::string make_string(char const *str)
  * @param args 
  * @return std::string 
  */
-inline std::string make_prefix(std::string prefix, std::initializer_list<std::string> args)
+inline std::string make_prefix(
+    std::string prefix,
+    std::initializer_list<std::string> args)
 {
     prefix += "tiny_ipc_";
     for (auto const &txt: args) {
@@ -47,7 +51,8 @@ inline std::string make_prefix(std::string prefix, std::initializer_list<std::st
     return prefix;
 }
 
-inline timespec make_timespec(std::uint64_t tm /*ms*/) noexcept(false)
+inline timespec make_timespec(
+    std::uint64_t tm /*ms*/) noexcept(false)
 {
     timespec ts {};
     timeval now;
@@ -62,7 +67,9 @@ inline timespec make_timespec(std::uint64_t tm /*ms*/) noexcept(false)
     return ts;
 }
 
-inline std::size_t align_size(const std::size_t &size, const std::size_t &align)
+inline std::size_t align_size(
+    const std::size_t &size,
+    const std::size_t &align)
 {
     return (size + align - 1) & ~(align - 1);
 }

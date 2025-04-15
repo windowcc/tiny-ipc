@@ -1,7 +1,7 @@
 #include <ipc/ipc.h>
 #include <shared_mutex>
 #include <handle.h>
-#include "MessageQueue.hpp"
+#include "message.hpp"
 #include "choose.hpp"
 #include "ipc/callback.h"
 #include "core/cache.hpp"
@@ -14,7 +14,7 @@ namespace ipc
 
 namespace
 {
-    #define HANDLE          (impl_->handle)
+    #define MESSAGE          (impl_->message)
     #define CACHE           (impl_->cache)
     #define MODE            (impl_->mode)
     #define CONNECTED       (impl_->connected)
@@ -26,7 +26,7 @@ namespace
 template<typename Wr>
 struct Ipc<Wr>::IpcImpl
 {
-    std::unique_ptr<MessageQueue<Choose<Segment>> > handle { nullptr };
+    std::unique_ptr<Message<Choose<Segment>>> message { nullptr };
     std::shared_ptr<void> cache {nullptr};
     unsigned mode { SENDER };
     std::atomic_bool connected { false };
@@ -34,14 +34,17 @@ struct Ipc<Wr>::IpcImpl
 };
 
 template <typename Wr>
-Ipc<Wr>::Ipc(char const *name, const unsigned &mode)
+Ipc<Wr>::Ipc(
+    char const *name,
+    const unsigned &mode)
     : impl_ { std::make_unique<Ipc<Wr>::IpcImpl>() }
 {
     connect(name, mode);
 }
 
 template <typename Wr>
-Ipc<Wr>::Ipc(Ipc&& rhs) noexcept
+Ipc<Wr>::Ipc(
+    Ipc&& rhs) noexcept
         : Ipc{}
 {
     impl_.swap(rhs.impl_);
@@ -54,7 +57,8 @@ Ipc<Wr>::~Ipc()
 }
 
 template <typename Wr>
-Ipc<Wr>& Ipc<Wr>::operator=(Ipc<Wr> rhs) noexcept
+Ipc<Wr>& Ipc<Wr>::operator=(
+    Ipc<Wr> rhs) noexcept
 {
     impl_.swap(rhs.impl_);
     return *this;
@@ -63,13 +67,13 @@ Ipc<Wr>& Ipc<Wr>::operator=(Ipc<Wr> rhs) noexcept
 template <typename Wr>
 char const * Ipc<Wr>::name() const noexcept
 {
-    return (HANDLE == nullptr) ? nullptr : HANDLE->name().c_str();
+    return (MESSAGE == nullptr) ? nullptr : MESSAGE->name().c_str();
 }
 
 template <typename Wr>
 bool Ipc<Wr>::valid() const noexcept
 {
-    return (HANDLE != nullptr);
+    return (MESSAGE != nullptr);
 }
 
 template <typename Wr>
@@ -79,7 +83,9 @@ unsigned Ipc<Wr>::mode() const noexcept
 }
 
 template <typename Wr>
-bool Ipc<Wr>::connect(char const * name, const unsigned &mode)
+bool Ipc<Wr>::connect(
+    char const * name,
+    const unsigned &mode)
 {
     if (name == nullptr || name[0] == '\0')
     {
@@ -105,8 +111,8 @@ bool Ipc<Wr>::connect(char const * name, const unsigned &mode)
     disconnect();
     if(!valid())
     {
-        HANDLE = std::make_unique<MessageQueue<Choose<Segment>>>(nullptr,name);
-        if(!HANDLE->init())
+        MESSAGE = std::make_unique<Message<Choose<Segment>>>(nullptr,name);
+        if(!MESSAGE->init())
         {
             if(CALLBACK)
             {
@@ -120,7 +126,8 @@ bool Ipc<Wr>::connect(char const * name, const unsigned &mode)
 }
 
 template <typename Wr>
-bool Ipc<Wr>::reconnect(unsigned mode)
+bool Ipc<Wr>::reconnect(
+    unsigned mode)
 {
     if (!valid())
     {
@@ -139,7 +146,7 @@ bool Ipc<Wr>::reconnect(unsigned mode)
         return true;
     }
 
-    auto que = HANDLE->queue();
+    auto que = MESSAGE->queue();
     if (que == nullptr)
     {
         if(CALLBACK)
@@ -149,7 +156,7 @@ bool Ipc<Wr>::reconnect(unsigned mode)
         return false;
     }
 
-    if(!(HANDLE->init()))
+    if(!(MESSAGE->init()))
     {
         if(CALLBACK)
         {
@@ -179,7 +186,7 @@ bool Ipc<Wr>::reconnect(unsigned mode)
 
     if (que->connected_id())
     {
-        HANDLE->disconnect();
+        MESSAGE->disconnect();
     }
 
     if(CALLBACK)
@@ -201,7 +208,7 @@ void Ipc<Wr>::disconnect()
         }
         return;
     }
-    auto que = HANDLE->queue();
+    auto que = MESSAGE->queue();
     if (que == nullptr)
     {
         if(CALLBACK)
@@ -212,8 +219,8 @@ void Ipc<Wr>::disconnect()
     }
     CONNECTED = false;
     que->disconnect();
-    assert((HANDLE) != nullptr);
-    HANDLE->disconnect();
+    assert((MESSAGE) != nullptr);
+    MESSAGE->disconnect();
 
     if(CALLBACK)
     {
@@ -222,7 +229,8 @@ void Ipc<Wr>::disconnect()
 }
 
 template <typename Wr>
-void Ipc<Wr>::set_callback(CallbackPtr callback)
+void Ipc<Wr>::set_callback(
+    CallbackPtr callback)
 {
     if(!CALLBACK)
     {
@@ -237,7 +245,9 @@ bool Ipc<Wr>::is_connected() const noexcept
 }
 
 template <typename Wr>
-bool Ipc<Wr>::write(void const *data, std::size_t size)
+bool Ipc<Wr>::write(
+    void const *data,
+    std::size_t size)
 {
     if (!valid() || data == nullptr || size == 0)
     {
@@ -247,7 +257,7 @@ bool Ipc<Wr>::write(void const *data, std::size_t size)
         }
         return false;
     }
-    auto que = HANDLE->queue();
+    auto que = MESSAGE->queue();
     if (que == nullptr || que->segment() == nullptr || !que->connect() ||
             !(que->segment()->connections()))
     {
@@ -271,7 +281,7 @@ bool Ipc<Wr>::write(void const *data, std::size_t size)
     }
     
     auto ret = Wr::is_broadcast ? 
-        HANDLE->waiter()->broadcast() : HANDLE->waiter()->notify();
+        MESSAGE->waiter()->broadcast() : MESSAGE->waiter()->notify();
 
     if(!ret || CALLBACK)
     {
@@ -282,18 +292,21 @@ bool Ipc<Wr>::write(void const *data, std::size_t size)
 }
 
 template <typename Wr>
-bool Ipc<Wr>::write(Buffer const & buff)
+bool Ipc<Wr>::write(
+    Buffer const & buff)
 {
     return this->write(buff.data(), buff.size());
 }
 
 template <typename Wr>
-bool Ipc<Wr>::write(std::string const & str)
+bool Ipc<Wr>::write(
+    std::string const & str)
 {
     return this->write(str.c_str(), str.size());
 }
 
-static std::string thread_id_to_string(const uint32_t &id)
+static std::string thread_id_to_string(
+    const uint32_t &id)
 {
     std::ostringstream oss;
     oss << id;
@@ -301,7 +314,8 @@ static std::string thread_id_to_string(const uint32_t &id)
 }
 
 template <typename Wr>
-void Ipc<Wr>::read(std::uint64_t tm)
+void Ipc<Wr>::read(
+    std::uint64_t tm)
 {
     if(!valid())
     {
@@ -311,7 +325,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
         }
         return ;
     }
-    auto que = HANDLE->queue();
+    auto que = MESSAGE->queue();
     if (que == nullptr)
     {
         if(CALLBACK)
@@ -335,7 +349,7 @@ void Ipc<Wr>::read(std::uint64_t tm)
             break;
         }
 
-        HANDLE->wait_for([&]
+        MESSAGE->wait_for([&]
         {
             Description desc{};
             while(!que->empty())

@@ -1,7 +1,7 @@
 #ifndef _IPC_CONNECT_INFO_H_
 #define _IPC_CONNECT_INFO_H_
 
-#include "Queue.hpp"
+#include "queue.hpp"
 #include "description.h"
 #include "sync/waiter.h"
 
@@ -11,16 +11,18 @@ namespace detail
 {
 
 template <typename Choose>
-class MessageQueue
+class Message
 {
 public:
-    explicit MessageQueue(char const *prefix, char const *name)
+    explicit Message(
+        char const *prefix,
+        char const *name)
         : prefix_{make_string(prefix)}
         , name_{make_string(name)}
     { 
     }
 
-    ~MessageQueue()
+    ~Message()
     {
     }
 public:
@@ -52,7 +54,9 @@ public:
     }
 
     template <typename F>
-    void wait_for(F &&pred, std::uint64_t tm)
+    void wait_for(
+        F &&pred,
+        std::uint64_t tm)
     {
         waiter()->wait_for(std::forward<F>(pred), tm);
     }

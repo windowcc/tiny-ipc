@@ -18,12 +18,14 @@ class ScopeGuard
 {
 public:
     template <typename D>
-    ScopeGuard(D &&destructor)
+    ScopeGuard(
+        D &&destructor)
         : destructor_(std::forward<D>(destructor)), dismiss_(false)
     {
     }
 
-    ScopeGuard(ScopeGuard &&rhs)
+    ScopeGuard(
+        ScopeGuard &&rhs)
         : destructor_(std::move(rhs.destructor_))
         , dismiss_(true)
     {
@@ -60,7 +62,8 @@ private:
 };
 
 template <typename D>
-constexpr auto Guard(D &&destructor) noexcept
+constexpr auto Guard(
+    D &&destructor) noexcept
 {
     return ScopeGuard<std::decay_t<D>>
     {

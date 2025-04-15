@@ -29,27 +29,32 @@ public:
      * 
      * @param cause 
      */
-	virtual void connected(const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
+	virtual void connected(
+        const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
 
     /**
      * @brief Connection loss callback function
      * 
      * @param cause 
      */
-	virtual void connection_lost(const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
+	virtual void connection_lost(
+        const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
 
     /**
      * @brief Message arrival callback function
      * 
      */
-	virtual void message_arrived(const Buffer *buf /*msg*/,const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
+	virtual void message_arrived(
+        const Buffer *buf /*msg*/,
+        const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
 
     /**
      * @brief Message sending callback function
      * 
      * @param cause 
      */
-	virtual void delivery_complete(const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
+	virtual void delivery_complete(
+        const ErrorCode &cause = ErrorCode::IPC_ERR_SUCCESS) {}
 };
 
 /** Smart/shared pointer to a callback object */

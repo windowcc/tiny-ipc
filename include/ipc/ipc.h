@@ -17,12 +17,16 @@ class Ipc
 {
 public:
     Ipc() noexcept = default;
-    explicit Ipc(char const * name, const unsigned &mode = SENDER);
-    Ipc(Ipc&& rhs) noexcept;
+    explicit Ipc(
+        char const * name,
+        const unsigned &mode = SENDER);
+    Ipc(
+        Ipc&& rhs) noexcept;
 
     ~Ipc();
 
-    Ipc& operator=(Ipc rhs) noexcept;
+    Ipc& operator=(
+        Ipc rhs) noexcept;
 public:
     char const * name() const noexcept;
 
@@ -30,23 +34,32 @@ public:
 
     unsigned mode() const noexcept;
 
-    bool connect(char const * name, const unsigned &mode = SENDER);
+    bool connect(
+        char const * name,
+        const unsigned &mode = SENDER);
 
-    bool reconnect(unsigned mode);
+    bool reconnect(
+        unsigned mode);
 
     void disconnect();
 
-    void set_callback(CallbackPtr);
+    void set_callback(
+        CallbackPtr callback_ptr);
 
     bool is_connected() const noexcept;
 
-    bool write(void const * data, std::size_t size);
+    bool write(
+        void const * data,
+        std::size_t size);
 
-    bool write(Buffer const & buff);
+    bool write(
+        Buffer const & buff);
 
-    bool write(std::string const & str);
+    bool write(
+        std::string const & str);
 
-    void read(std::uint64_t tm = static_cast<uint64_t>(TimeOut::INVALID_TIMEOUT));
+    void read(
+        std::uint64_t tm = static_cast<uint64_t>(TimeOut::INVALID_TIMEOUT));
 
 private:
     struct IpcImpl;

@@ -28,7 +28,8 @@ public:
 
     void close() noexcept;
 
-    bool lock(uint64_t tm = static_cast<uint64_t>(TimeOut::INVALID_TIMEOUT)) noexcept;
+    bool lock(
+        uint64_t tm = static_cast<uint64_t>(TimeOut::INVALID_TIMEOUT)) noexcept;
 
     bool try_lock() noexcept(false);
 

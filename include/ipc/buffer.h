@@ -18,19 +18,31 @@ public:
 	using const_ptr_t = std::shared_ptr<const Buffer>;
 
     Buffer();
-    Buffer(void* p, std::size_t s);
-    Buffer(void* p, std::size_t s, destructor_t d);
+    Buffer(
+        void* p,
+        std::size_t s);
+    Buffer(
+        void* p,
+        std::size_t s,
+        destructor_t d);
 
 public:
     template <std::size_t N>
-    explicit Buffer(uint8_t const (& data)[N]);
-    explicit Buffer(char const & c);
+    explicit Buffer(
+        uint8_t const (& data)[N]);
 
-    Buffer(Buffer&& rhs);
+    explicit Buffer(
+        char const & c);
+
+    Buffer(
+        Buffer&& rhs);
+
     ~Buffer();
 
-    void swap(Buffer& rhs);
-    Buffer& operator=(Buffer rhs);
+    void swap(
+        Buffer& rhs);
+    Buffer& operator=(
+        Buffer rhs);
 
     bool empty() const noexcept;
 
@@ -45,8 +57,13 @@ public:
 
     std::size_t size() const noexcept;
 
-    friend IPC_EXPORT bool operator==(Buffer const & b1, Buffer const & b2);
-    friend IPC_EXPORT bool operator!=(Buffer const & b1, Buffer const & b2);
+    friend IPC_EXPORT bool operator==(
+        Buffer const & b1,
+        Buffer const & b2);
+        
+    friend IPC_EXPORT bool operator!=(
+        Buffer const & b1,
+        Buffer const & b2);
 
 private:
     class BufferImpl;

@@ -24,13 +24,19 @@ public:
 public:
 
     template <typename Q, typename F>
-    bool push(Q* que, F&& f)
+    bool push(
+        Q* que,
+        F&& f)
     {
         return Head<Content>::base_t::ctx_.push(que, std::forward<F>(f), block_);
     }
 
     template <typename Q, typename F, typename R>
-    bool pop(Q* que, cursor_t &cur, F&& f, R&& out)
+    bool pop(
+        Q* que,
+        cursor_t &cur,
+        F&& f,
+        R&& out)
     {
         return Head<Content>::base_t::ctx_.pop(que, cur, std::forward<F>(f), std::forward<R>(out), block_);
     }

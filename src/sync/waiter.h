@@ -31,7 +31,9 @@ public:
     bool quit();
 
     template <typename F>
-    void wait_for(F &&pred, std::uint64_t tm = static_cast<uint64_t>(TimeOut::DEFAULT_TIMEOUT)) noexcept
+    void wait_for(
+        F &&pred,
+        std::uint64_t tm = static_cast<uint64_t>(TimeOut::DEFAULT_TIMEOUT)) noexcept
     {
         std::lock_guard<Mutex> guard{ mutex_ };
         if (tm && !cond_.wait(mutex_, tm))

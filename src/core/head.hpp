@@ -45,12 +45,15 @@ public:
         return base_t::ctx_.connections();
     }
 
-    uint32_t connect(const unsigned &mode = SENDER) noexcept
+    uint32_t connect(
+        const unsigned &mode = SENDER) noexcept
     {
         return base_t::ctx_.connect(mode);
     }
 
-    uint32_t disconnect(const unsigned &mode = SENDER,uint32_t cc_id = 0) noexcept
+    uint32_t disconnect(
+        const unsigned &mode = SENDER,
+        uint32_t cc_id = 0) noexcept
     {
         return base_t::ctx_.disconnect(mode, cc_id);
     }

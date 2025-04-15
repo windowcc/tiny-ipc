@@ -70,7 +70,9 @@ void Condition::close() noexcept
     }
 }
 
-bool Condition::wait(Mutex &mtx, std::uint64_t tm) noexcept
+bool Condition::wait(
+    Mutex &mtx,
+    std::uint64_t tm) noexcept
 {
     if (!valid())
         return false;
@@ -102,7 +104,8 @@ bool Condition::wait(Mutex &mtx, std::uint64_t tm) noexcept
     return true;
 }
 
-bool Condition::notify(Mutex &) noexcept
+bool Condition::notify(
+    Mutex &) noexcept
 {
     if (!valid())
         return false;
@@ -114,7 +117,8 @@ bool Condition::notify(Mutex &) noexcept
     return true;
 }
 
-bool Condition::broadcast(Mutex &) noexcept
+bool Condition::broadcast(
+    Mutex &) noexcept
 {
     if (!valid())
         return false;

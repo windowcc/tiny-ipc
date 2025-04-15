@@ -5,8 +5,8 @@
 #include <cstring>
 #include <bitset>
 #include <type_traits>
+#include "connection.h"
 #include "ipc/def.h"
-#include "core/connection.h"
 #include "sync/spinlock.h"
 
 namespace ipc
@@ -35,7 +35,10 @@ public:
 
 public:
     template <typename W, typename F, typename Seg>
-    bool push(W * /*wrapper*/, F &&f, Seg *seg)
+    bool push(
+        W * /*wrapper*/,
+        F &&f,
+        Seg *seg)
     {
         auto cur_wt = static_cast<uint8_t>(w_.load(std::memory_order_relaxed));
         if (cur_wt == static_cast<uint8_t>(r_.load(std::memory_order_acquire) - 1))
@@ -48,7 +51,12 @@ public:
     }
 
     template <typename W, typename F, typename R, typename Seg>
-    bool pop(W * /*wrapper*/, uint32_t &cur, F &&f, R &&out, Seg *seg)
+    bool pop(
+        W * /*wrapper*/,
+        uint32_t &cur,
+        F &&f,
+        R &&out,
+        Seg *seg)
     {
         if (static_cast<uint8_t>(cur) == static_cast<uint8_t>(w_.load(std::memory_order_acquire)))
         {

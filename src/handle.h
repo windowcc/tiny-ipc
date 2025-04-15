@@ -20,9 +20,15 @@ class Handle
 {
 public:
     Handle();
-    Handle(char const *name, std::size_t size, unsigned mode = create | open);
-    Handle(Handle &&rhs);
-    Handle &operator=(Handle rhs);
+    Handle(
+        char const *name,
+        std::size_t size,
+        unsigned mode = create | open);
+
+    Handle(
+        Handle &&rhs);
+    Handle &operator=(
+        Handle rhs);
 
     ~Handle();
 
@@ -34,7 +40,11 @@ public:
     std::int32_t ref() const noexcept;
     void sub_ref() noexcept;
 
-    bool acquire(char const *name, std::size_t size, unsigned mode = create | open);
+    bool acquire(
+        char const *name,
+        std::size_t size,
+        unsigned mode = create | open);
+    
     std::int32_t release();
 
     void *get();

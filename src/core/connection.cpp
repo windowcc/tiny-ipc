@@ -22,7 +22,8 @@ Connection::~Connection()
     cc_.reset();
 }
 
-uint32_t Connection::connect(const unsigned &mode) noexcept
+uint32_t Connection::connect(
+    const unsigned &mode) noexcept
 {
     auto guard = std::unique_lock<SpinLock>(lcc_);
 
@@ -44,7 +45,9 @@ uint32_t Connection::connect(const unsigned &mode) noexcept
     return cur_pos + 1;
 }
 
-uint32_t Connection::disconnect(const unsigned &mode,uint32_t cc_id) noexcept
+uint32_t Connection::disconnect(
+    const unsigned &mode,
+    uint32_t cc_id) noexcept
 {
     std::unique_lock<SpinLock> guard(lcc_);
     cc_.reset(cc_id - 1);

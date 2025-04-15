@@ -27,11 +27,15 @@ public:
 
     void close() noexcept;
 
-    bool wait(Mutex &mtx, std::uint64_t tm = static_cast<uint64_t>(TimeOut::DEFAULT_TIMEOUT)) noexcept;
+    bool wait(
+        Mutex &mtx,
+        std::uint64_t tm = static_cast<uint64_t>(TimeOut::DEFAULT_TIMEOUT)) noexcept;
 
-    bool notify(Mutex &) noexcept;
+    bool notify(
+        Mutex &) noexcept;
 
-    bool broadcast(Mutex &) noexcept;
+    bool broadcast(
+        Mutex &) noexcept;
 private:
     pthread_cond_t cond_;
 };

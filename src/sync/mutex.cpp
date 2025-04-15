@@ -77,7 +77,8 @@ void Mutex::close() noexcept
     }
 }
 
-bool Mutex::lock(std::uint64_t tm) noexcept
+bool Mutex::lock(
+    std::uint64_t tm) noexcept
 {
     if (!valid())
         return false;

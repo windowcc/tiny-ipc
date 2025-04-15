@@ -60,7 +60,8 @@ namespace ipc
 {
 
 template <typename K>
-inline void yield(K &k) noexcept
+inline void yield(
+    K &k) noexcept
 {
     if (k < 4)
     { /* Do nothing */
@@ -95,7 +96,8 @@ class SpinLock
     std::atomic<unsigned> lc_{0};
 
 public:
-    void lock(void) noexcept
+    void lock(
+        void) noexcept
     {
         for (unsigned k = 0;
                 lc_.exchange(1, std::memory_order_acquire);
@@ -103,7 +105,8 @@ public:
             ;
     }
 
-    void unlock(void) noexcept
+    void unlock(
+        void) noexcept
     {
         lc_.store(0, std::memory_order_release);
     }

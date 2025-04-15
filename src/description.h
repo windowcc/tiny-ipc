@@ -15,16 +15,21 @@ class Description
 {
 public:
     Description();
-    Description(const uint32_t &id,const std::size_t &offset, const std::size_t &len);
+    Description(
+        const uint32_t &id,
+        const std::size_t &offset,const std::size_t &len);
     ~Description();
 public:
-    void id(const uint32_t &id);
+    void id(
+        const uint32_t &id);
     uint32_t id() const;
 
-    void offset(const std::size_t &offset);
+    void offset(
+        const std::size_t &offset);
     std::size_t offset() const;
 
-    void length(const std::size_t &size);
+    void length(
+        const std::size_t &size);
     std::size_t length() const;
 
 private:

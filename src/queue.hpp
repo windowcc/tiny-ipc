@@ -17,8 +17,10 @@ class QueueConn
 {
 public:
     QueueConn() = default;
-    QueueConn(const QueueConn &) = delete;
-    QueueConn &operator=(const QueueConn &) = delete;
+    QueueConn(
+        const QueueConn &) = delete;
+    QueueConn &operator=(
+        const QueueConn &) = delete;
 
 public:
     uint32_t connected_id() const noexcept
@@ -27,7 +29,9 @@ public:
     }
     
     template <typename Segment>
-    auto connect(Segment *segment, unsigned mode = RECEIVER) noexcept
+    auto connect(
+        Segment *segment,
+        unsigned mode = RECEIVER) noexcept
         -> std::tuple<bool, bool, decltype(std::declval<Segment>().rd())>
     {
         if (segment == nullptr)
@@ -45,7 +49,8 @@ public:
     }
 
     template <typename Segment>
-    bool disconnect(Segment *segment) noexcept
+    bool disconnect(
+        Segment *segment) noexcept
     {
         if (segment == nullptr || !connected_id())
         {
@@ -58,7 +63,8 @@ public:
 
 protected:
     template <typename Segment>
-    Segment *open(char const *name)
+    Segment *open(
+        char const *name)
     {
         if (!is_valid_string(name))
         {
@@ -94,7 +100,8 @@ public:
     using segment_t = Segment;
     QueueBase() = default;
 
-    explicit QueueBase(char const *name)
+    explicit QueueBase(
+        char const *name)
         : QueueBase{}
     {
         segment_ = QueueConn::template open<segment_t>(name);
@@ -111,7 +118,8 @@ public:
     }
 
 public:
-    bool open(char const *name) noexcept
+    bool open(
+        char const *name) noexcept
     {
         QueueConn::close();
         segment_ = QueueConn::template open<segment_t>(name);
@@ -123,7 +131,8 @@ public:
         return segment_;
     }
 
-    bool connect(unsigned mode = RECEIVER) noexcept
+    bool connect(
+        unsigned mode = RECEIVER) noexcept
     {
         auto tp = QueueConn::connect(segment_,mode);
         if (std::get<0>(tp) && std::get<1>(tp))
@@ -159,7 +168,8 @@ public:
     }
 
     template <typename Description, typename... P>
-    bool push(P &&...params)
+    bool push(
+        P &&...params)
     {
         if (segment_ == nullptr || sender_flag_ == false)
         {
@@ -172,7 +182,9 @@ public:
     }
 
     template <typename Description, typename F>
-    bool pop(Description &item, F &&out)
+    bool pop(
+        Description &item,
+        F &&out)
     {
         if (segment_ == nullptr || sender_flag_ == false)
         {
@@ -206,13 +218,16 @@ class Queue final :
 
 public:
     template <typename... P>
-    bool push(P &&...params)
+    bool push(
+        P &&...params)
     {
         return base_t::template push<Description>(std::forward<P>(params)...);
     }
 
     template <typename F>
-    bool pop(Description &item, F &&out)
+    bool pop(
+        Description &item,
+        F &&out)
     {
         return base_t::pop(item, std::forward<F>(out));
     }

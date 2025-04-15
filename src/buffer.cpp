@@ -4,12 +4,16 @@
 namespace ipc
 {
 
-bool operator==(Buffer const &b1, Buffer const &b2)
+bool operator==(
+    Buffer const &b1,
+    Buffer const &b2)
 {
     return (b1.size() == b2.size()) && (std::memcmp(b1.data(), b2.data(), b1.size()) == 0);
 }
 
-bool operator!=(Buffer const &b1, Buffer const &b2)
+bool operator!=(
+    Buffer const &b1,
+    Buffer const &b2)
 {
     return !(b1 == b2);
 }
@@ -18,7 +22,11 @@ class Buffer::BufferImpl
 {
     friend class Buffer;
 public:
-    BufferImpl(void *p, std::size_t s, Buffer::destructor_t d, void *a)
+    BufferImpl(
+        void *p,
+        std::size_t s,
+        Buffer::destructor_t d,
+        void *a)
         : p_(p)
         , s_(s)
         , a_(a)
@@ -40,7 +48,8 @@ private:
 };
 
 template <std::size_t N>
-Buffer::Buffer(uint8_t const (&data)[N])
+Buffer::Buffer(
+    uint8_t const (&data)[N])
     : Buffer(data, sizeof(data))
 {
 }
@@ -50,23 +59,30 @@ Buffer::Buffer()
 {
 }
 
-Buffer::Buffer(void *p, std::size_t s, destructor_t d)
+Buffer::Buffer(
+    void *p,
+    std::size_t s,
+    destructor_t d)
     : impl_(std::make_unique<BufferImpl>(p, s, d, nullptr))
 {
 }
 
 
-Buffer::Buffer(void *p, std::size_t s)
+Buffer::Buffer(
+    void *p,
+    std::size_t s)
     : Buffer(p, s, nullptr)
 {
 }
 
-Buffer::Buffer(char const &c)
+Buffer::Buffer(
+    char const &c)
     : Buffer(const_cast<char *>(&c), 1)
 {
 }
 
-Buffer::Buffer(Buffer &&rhs)
+Buffer::Buffer(
+    Buffer &&rhs)
     : Buffer()
 {
     swap(rhs);
@@ -77,12 +93,14 @@ Buffer::~Buffer()
 
 }
 
-void Buffer::swap(Buffer &rhs)
+void Buffer::swap(
+    Buffer &rhs)
 {
     std::swap(impl_, rhs.impl_);
 }
 
-Buffer &Buffer::operator=(Buffer rhs)
+Buffer &Buffer::operator=(
+    Buffer rhs)
 {
     swap(rhs);
     return *this;

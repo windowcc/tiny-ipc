@@ -84,7 +84,10 @@ public:
     }
 
 public:
-    std::shared_ptr<void> write(void const *data, const std::size_t &size,const uint32_t &cnt)
+    std::shared_ptr<void> write(
+        void const *data,
+        const std::size_t &size,
+        const uint32_t &cnt)
     {
         std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
         recyle_memory(now);
@@ -121,7 +124,8 @@ public:
     }
 
 private:
-    void recyle_memory(const std::chrono::time_point<std::chrono::steady_clock> &now)
+    void recyle_memory(
+        const std::chrono::time_point<std::chrono::steady_clock> &now)
     {
         if(map_.empty())
         {
@@ -168,7 +172,9 @@ public:
         handles_.clear();
     }
 public:
-    bool read(const Description &desc, std::function<void(const Buffer *)> callback)
+    bool read(
+        const Description &desc,
+        std::function<void(const Buffer *)> callback)
     {
         Handle *handle = get_handle(desc.id());
         if(!handle || !callback)
@@ -187,7 +193,8 @@ public:
     }
 
 private:
-    Handle *get_handle(const uint32_t &id)
+    Handle *get_handle(
+        const uint32_t &id)
     {
         auto it = handles_.find(id);
         if(it == handles_.end())
@@ -245,14 +252,19 @@ public:
     }
 public:
     template <typename U = T>
-    auto write(void const *data, const std::size_t &size,const uint32_t &cnt) 
+    auto write(
+        void const *data,
+        const std::size_t &size,
+        const uint32_t &cnt) 
         -> std::enable_if_t<ipc::detail::is_sender<U>::value, std::shared_ptr<void>>
     {
         return cache_->write(data,size,cnt);
     }
 
     template <typename U = T>
-    auto read(const Description &desc, std::function<void(const Buffer *)> callback)
+    auto read(
+        const Description &desc,
+        std::function<void(const Buffer *)> callback)
         -> std::enable_if_t<!ipc::detail::is_sender<U>::value, bool>
     {
         return cache_->read(desc,callback);

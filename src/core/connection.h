@@ -19,9 +19,12 @@ public:
 
     ~Connection();
 public:
-    uint32_t connect(const unsigned &mode = SENDER) noexcept;
+    uint32_t connect(
+        const unsigned &mode = SENDER) noexcept;
 
-    uint32_t disconnect(const unsigned &mode = SENDER,uint32_t cc_id = 0) noexcept;
+    uint32_t disconnect(
+        const unsigned &mode = SENDER,
+        uint32_t cc_id = 0) noexcept;
 
     uint32_t connections() noexcept;
 
