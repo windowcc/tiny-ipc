@@ -13,88 +13,8 @@ namespace ipc
 namespace detail
 {
 
-class QueueConn
-{
-public:
-    QueueConn() = default;
-    QueueConn(
-        const QueueConn &) = delete;
-    QueueConn &operator=(
-        const QueueConn &) = delete;
-
-public:
-    uint32_t connected_id() const noexcept
-    {
-        return connected_id_;
-    }
-    
-    template <typename Segment>
-    auto connect(
-        Segment *segment,
-        unsigned mode = RECEIVER) noexcept
-        -> std::tuple<bool, bool, decltype(std::declval<Segment>().rd())>
-    {
-        if (segment == nullptr)
-        {
-            return {};
-        }
-        // if it's already connected, just return
-        if (connected_id())
-        {
-            return {connected_id(), false, 0};
-        }
-
-        connected_id_ = segment->connect(mode);
-        return {connected_id(), true, segment->rd()};
-    }
-
-    template <typename Segment>
-    bool disconnect(
-        Segment *segment) noexcept
-    {
-        if (segment == nullptr || !connected_id())
-        {
-            return false;
-        }
-
-        segment->disconnect(RECEIVER, std::exchange(connected_id_, 0));
-        return true;
-    }
-
-protected:
-    template <typename Segment>
-    Segment *open(
-        char const *name)
-    {
-        if (!is_valid_string(name))
-        {
-            return nullptr;
-        }
-        if (!handle_.acquire(name, sizeof(Segment)))
-        {
-            return nullptr;
-        }
-        auto segment = static_cast<Segment *>(handle_.get());
-        if (segment == nullptr)
-        {
-            return nullptr;
-        }
-        segment->init();
-        return segment;
-    }
-
-    void close()
-    {
-        handle_.release();
-    }
-
-protected:
-    uint32_t connected_id_ = 0;
-    Handle handle_;
-};
-
 template <typename Segment>
-class QueueBase : public QueueConn
+class QueueBase
 {
 public:
     using segment_t = Segment;
@@ -104,7 +24,6 @@ public:
         char const *name)
         : QueueBase{}
     {
-        segment_ = QueueConn::template open<segment_t>(name);
     }
 
     virtual ~QueueBase()
@@ -114,16 +33,29 @@ public:
         {
             segment_->waiter().close();
         }
-        QueueConn::close();
+        close();
     }
 
 public:
+
     bool open(
         char const *name) noexcept
     {
-        QueueConn::close();
-        segment_ = QueueConn::template open<segment_t>(name);
-        return segment_ != nullptr;
+        close();
+
+        if(!is_valid_string(name) || !handle_.acquire(name,sizeof(segment_t)))
+        {
+            return false;
+        }
+
+        segment_ = static_cast<segment_t*>(handle_.get());
+
+        return segment_ && segment_->init();
+    }
+
+    void close()
+    {
+        handle_.release();
     }
 
     segment_t *segment() noexcept
@@ -131,17 +63,27 @@ public:
         return segment_;
     }
 
+    uint32_t connected_id() const noexcept
+    {
+        return connected_id_;
+    }
+
     bool connect(
         unsigned mode = RECEIVER) noexcept
     {
-        auto tp = QueueConn::connect(segment_,mode);
-        if (std::get<0>(tp) && std::get<1>(tp))
+        if(!segment_)
         {
-            cursor_ = std::get<2>(tp);
-            sender_flag_ = true;
-            return true;
+            return false;
         }
-        return std::get<0>(tp);
+        if(!connected_id_)
+        {
+            connected_id_ = segment_->connect(mode);
+        }
+
+        cursor_ = segment_->rd();
+        sender_flag_ = true;
+
+        return true;
     }
 
     bool disconnect() noexcept
@@ -202,6 +144,8 @@ public:
     }
 
 private:
+    uint32_t connected_id_ = 0;
+    Handle handle_;
     // It is used to record the actual read subscript of the object currently being read.
     decltype(std::declval<segment_t>().rd()) cursor_ = 0;
     bool sender_flag_ = false;

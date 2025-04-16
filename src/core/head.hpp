@@ -26,7 +26,7 @@ public:
     Head &operator=(Head const &) = delete;
 
 public:
-    void init()
+    bool init()
     {
         if (!constructed_.load(std::memory_order_acquire))
         {
@@ -34,10 +34,14 @@ public:
             if (!constructed_.load(std::memory_order_relaxed))
             {
                 ::new (this) Head;
-                waiter_.init();
+                if(!waiter_.init())
+                {
+                    return false;
+                }
                 constructed_.store(true, std::memory_order_release);
             }
         }
+        return true;
     }
 
     uint32_t connections() noexcept
