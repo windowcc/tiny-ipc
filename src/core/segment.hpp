@@ -28,7 +28,7 @@ public:
         Q* que,
         F&& f)
     {
-        return Head<Content>::base_t::ctx_.push(que, std::forward<F>(f), block_);
+        return Head<Content>::base_t::content_.push(que, std::forward<F>(f), block_);
     }
 
     template <typename Q, typename F, typename R>
@@ -38,7 +38,7 @@ public:
         F&& f,
         R&& out)
     {
-        return Head<Content>::base_t::ctx_.pop(que, cur, std::forward<F>(f), std::forward<R>(out), block_);
+        return Head<Content>::base_t::content_.pop(que, cur, std::forward<F>(f), std::forward<R>(out), block_);
     }
 
 private:

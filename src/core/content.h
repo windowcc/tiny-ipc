@@ -18,9 +18,6 @@ namespace detail
 /// producer-consumer implementation
 ////////////////////////////////////////////////////////////////
 
-// Minimum offset between two objects to avoid false sharing.
-const static uint8_t Align = 64;
-
 class Content : public Connection
 {
 public:
@@ -71,8 +68,8 @@ public:
     }
 
 private:
-    alignas(Align) std::atomic<uint32_t> r_; // read index
-    alignas(Align) std::atomic<uint32_t> w_; // write index
+    alignas(std::max_align_t) std::atomic<uint32_t> r_; // read index
+    alignas(std::max_align_t) std::atomic<uint32_t> w_; // write index
 };
 
 } // namespace detail

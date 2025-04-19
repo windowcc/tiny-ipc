@@ -46,35 +46,35 @@ public:
 
     uint32_t connections() noexcept
     {
-        return base_t::ctx_.connections();
+        return base_t::content_.connections();
     }
 
     uint32_t connect(
         const unsigned &mode = SENDER) noexcept
     {
-        return base_t::ctx_.connect(mode);
+        return base_t::content_.connect(mode);
     }
 
     uint32_t disconnect(
         const unsigned &mode = SENDER,
         uint32_t cc_id = 0) noexcept
     {
-        return base_t::ctx_.disconnect(mode, cc_id);
+        return base_t::content_.disconnect(mode, cc_id);
     }
 
     uint32_t recv_count() noexcept
     {
-        return base_t::ctx_.recv_count();
+        return base_t::content_.recv_count();
     }
 
     cursor_t rd() const noexcept
     {
-        return base_t::ctx_.rd();
+        return base_t::content_.rd();
     }
 
     cursor_t wr() const noexcept
     {
-        return base_t::ctx_.wr();
+        return base_t::content_.wr();
     }
 
     inline Waiter &waiter() noexcept
@@ -84,7 +84,7 @@ public:
 
 protected:
     Waiter waiter_;
-    Content ctx_;
+    Content content_;
 
     // init
     SpinLock lc_;
