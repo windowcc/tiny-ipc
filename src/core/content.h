@@ -68,8 +68,8 @@ public:
     }
 
 private:
-    alignas(std::max_align_t) std::atomic<uint32_t> r_; // read index
-    alignas(std::max_align_t) std::atomic<uint32_t> w_; // write index
+    alignas(ALIGN_64) std::atomic<uint32_t> r_; // read index
+    alignas(ALIGN_64) std::atomic<uint32_t> w_; // write index
 };
 
 } // namespace detail

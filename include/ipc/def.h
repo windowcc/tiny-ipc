@@ -43,6 +43,8 @@ enum class Transmission : uint32_t
     BROADCAST
 };
 
+#define ALIGN_64 (64)
+
 // producer-consumer policy flag
 template <Transmission Ts>
 struct Wr
