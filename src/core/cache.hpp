@@ -90,7 +90,7 @@ public:
         count->store(cnt,std::memory_order_relaxed);
         memcpy(static_cast<char*>(pool_data) + sizeof(uint32_t),data,size);
         
-        map_.emplace(pool_data,std::make_tuple(pool_size,now));
+        map_.emplace(pool_data, std::make_pair(pool_size,now));
 
         return std::make_shared<Description>
         (
@@ -111,10 +111,11 @@ private:
         for (auto it = map_.begin(); it != map_.end();)
         {
             std::atomic<uint32_t> *count = static_cast<std::atomic<uint32_t>*>(it->first);
+            auto &[key,value] = it->second;
             if(!count->load() ||
-                (std::chrono::duration_cast<std::chrono::milliseconds>(now - std::get<1>(it->second)).count() >= DEFAULT_TIMEOUT_VALUE))
+                (std::chrono::duration_cast<std::chrono::milliseconds>(now - value).count() >= DEFAULT_TIMEOUT_VALUE))
             {
-                pool_->deallocate(it->first,std::get<0>(it->second));
+                pool_->deallocate(it->first,key);
                 it = map_.erase(it);
             }
             else
@@ -133,7 +134,7 @@ private:
     std::shared_ptr<std::pmr::monotonic_buffer_resource> pool_;
     // already memory using map
     std::unordered_map<void*,
-        std::tuple<std::size_t,std::chrono::time_point<std::chrono::steady_clock>>> map_;
+        std::pair<std::size_t,std::chrono::time_point<std::chrono::steady_clock>>> map_;
 };
 
 

@@ -1,7 +1,6 @@
 #ifndef _IPC_QUEUE_H_
 #define _IPC_QUEUE_H_
 
-#include <tuple>
 #include <cassert>
 #include <type_traits>
 #include "handle.h"
