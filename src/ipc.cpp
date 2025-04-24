@@ -112,14 +112,6 @@ bool Ipc<Wr>::connect(
     if(!valid())
     {
         MESSAGE = std::make_unique<Message<Choose<Segment>>>(nullptr,name);
-        if(!MESSAGE->init())
-        {
-            if(CALLBACK)
-            {
-                CALLBACK->connected(ErrorCode::IPC_ERR_NOINIT);
-            }
-            return false;
-        }
     }
     MODE = mode;
     return CONNECTED = reconnect(mode);
