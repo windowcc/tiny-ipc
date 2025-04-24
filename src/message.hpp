@@ -11,8 +11,10 @@ namespace detail
 {
 
 template <typename Choose>
-class Message
+class Message final 
+    : public Queue<Description, Choose>
 {
+    using queue_t = Queue<Description, Choose>;
 public:
     explicit Message(
         char const *prefix,
@@ -28,14 +30,12 @@ public:
 public:
     bool init()
     {
-        if (!queue_.valid())
+        if (!queue_t::valid() && 
+            queue_t::open(make_prefix(prefix_,{"_",this->name_}).c_str()))
         {
-            if(!queue_.open(make_prefix(prefix_,{"_",this->name_}).c_str()))
-            {
-                return false;
-            }
+            return true;
         }
-        return true;
+        return false;
     }
 
     inline std::string prefix() const
@@ -47,34 +47,9 @@ public:
     {
         return name_;
     }
-
-    inline auto *queue()
-    {
-        return &queue_;
-    }
-
-    template <typename F>
-    void wait_for(
-        F &&pred,
-        std::uint64_t tm)
-    {
-        waiter()->wait_for(std::forward<F>(pred), tm);
-    }
-
-    inline Waiter *waiter() noexcept
-    {
-        return queue_.waiter();
-    }
-
-    void disconnect()
-    {
-        waiter()->quit();
-        queue_.disconnect();
-    }
 private:
     std::string prefix_;
     std::string name_;
-    Queue<Description, Choose> queue_;
 };
 
 

@@ -146,8 +146,7 @@ bool Ipc<Wr>::reconnect(
         return true;
     }
 
-    auto que = MESSAGE->queue();
-    if (que == nullptr)
+    if (MESSAGE == nullptr)
     {
         if(CALLBACK)
         {
@@ -167,8 +166,8 @@ bool Ipc<Wr>::reconnect(
 
     if (mode & RECEIVER)
     {
-        que->disconnect();
-        if (que->connect(mode))
+        MESSAGE->disconnect();
+        if (MESSAGE->connect(mode))
         {
             if(CALLBACK)
             {
@@ -184,7 +183,7 @@ bool Ipc<Wr>::reconnect(
         return false;
     }
 
-    if (que->connected_id())
+    if (MESSAGE->connected_id())
     {
         MESSAGE->disconnect();
     }
@@ -194,7 +193,7 @@ bool Ipc<Wr>::reconnect(
         CALLBACK->connected();
     }
 
-    return que->connect(mode);
+    return MESSAGE->connect(mode);
 }
 
 template <typename Wr>
@@ -208,8 +207,7 @@ void Ipc<Wr>::disconnect()
         }
         return;
     }
-    auto que = MESSAGE->queue();
-    if (que == nullptr)
+    if (MESSAGE == nullptr)
     {
         if(CALLBACK)
         {
@@ -218,7 +216,7 @@ void Ipc<Wr>::disconnect()
         return;
     }
     CONNECTED = false;
-    que->disconnect();
+    MESSAGE->disconnect();
     assert((MESSAGE) != nullptr);
     MESSAGE->disconnect();
 
@@ -257,9 +255,8 @@ bool Ipc<Wr>::write(
         }
         return false;
     }
-    auto que = MESSAGE->queue();
-    if (que == nullptr || que->segment() == nullptr || !que->connect() ||
-            !(que->segment()->connections()))
+    if (MESSAGE == nullptr || MESSAGE->segment() == nullptr || !MESSAGE->connect() ||
+            !(MESSAGE->segment()->connections()))
     {
         if(CALLBACK)
         {
@@ -269,9 +266,9 @@ bool Ipc<Wr>::write(
     }
 
     auto desc = std::static_pointer_cast<Description>( 
-        std::static_pointer_cast<Cache<Sender>>(CACHE)->write(data,size,que->segment()->recv_count())
+        std::static_pointer_cast<Cache<Sender>>(CACHE)->write(data,size,MESSAGE->segment()->recv_count())
     );
-    if(!desc->length() || !que->push(*desc))
+    if(!desc->length() || !MESSAGE->push(*desc))
     {
         if(CALLBACK)
         {
@@ -325,8 +322,7 @@ void Ipc<Wr>::read(
         }
         return ;
     }
-    auto que = MESSAGE->queue();
-    if (que == nullptr)
+    if (MESSAGE == nullptr)
     {
         if(CALLBACK)
         {
@@ -334,7 +330,7 @@ void Ipc<Wr>::read(
         }
         return ;
     }
-    if (!que->connected_id())
+    if (!MESSAGE->connected_id())
     {
         if(CALLBACK)
         {
@@ -352,9 +348,9 @@ void Ipc<Wr>::read(
         MESSAGE->wait_for([&]
         {
             Description desc{};
-            while(!que->empty())
+            while(!MESSAGE->empty())
             {
-                if(!que->pop(desc,[&](bool) -> bool
+                if(!MESSAGE->pop(desc,[&](bool) -> bool
                 {
                     return std::static_pointer_cast<Cache<Receiver>>(CACHE)->read(desc,[&](const Buffer *buf) -> void
                     {

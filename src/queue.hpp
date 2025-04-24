@@ -88,6 +88,7 @@ public:
 
     bool disconnect() noexcept
     {
+        waiter()->quit();
         if (segment_ == nullptr || !connected_id())
         {
             return false;
@@ -99,6 +100,11 @@ public:
         return true;
     }
 
+    inline Waiter *waiter() noexcept
+    {
+        return &(segment_->waiter());
+    }
+
     bool valid() const noexcept
     {
         return segment_ != nullptr;
@@ -107,6 +113,14 @@ public:
     bool empty() const noexcept
     {
         return !valid() || (cursor_ == segment_->wr());
+    }
+
+    template <typename F>
+    void wait_for(
+        F &&pred,
+        std::uint64_t tm)
+    {
+        waiter()->wait_for(std::forward<F>(pred), tm);
     }
 
     template <typename Description, typename... P>
@@ -138,11 +152,6 @@ public:
         }, std::forward<F>(out));
     }
 
-    inline Waiter *waiter() noexcept
-    {
-        return &(segment_->waiter());
-    }
-
 private:
     uint32_t connected_id_ = 0;
     Handle handle_;
@@ -155,7 +164,7 @@ private:
 } // namespace detail
 
 template <typename D, typename Choose>
-class Queue final : 
+class Queue : 
     public detail::QueueBase<typename Choose::template segment_t<sizeof(D), alignof(D)>>
 {
     using base_t = detail::QueueBase<typename Choose::template segment_t<sizeof(D), alignof(D)>>;
