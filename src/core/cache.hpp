@@ -22,10 +22,6 @@ static constexpr std::size_t DEFAULT_CACHE_SIZE = 1024 * 1024 * 1024; // 1G
 static const std::string DEFAULT_SHM_NAME = "tiny_ipc_";
 static constexpr uint32_t DEFAULT_TIMEOUT_VALUE = 10 * 1000; // mill
 
-// Unified release after the application ends
-static std::unordered_map<std::string, std::shared_ptr<SpinLock>> locks;
-    
-
 static std::string thread_id_to_string(const uint32_t &id)
 {
     std::ostringstream oss;
@@ -53,14 +49,6 @@ public:
             return ;
         }
 
-        // Create a new lock, if it does not exist
-        if(locks.find(std::string(handle_.name())) == locks.end())
-        {
-            locks.insert(
-                {std::string(handle_.name()),std::make_shared<SpinLock>()}
-            );
-        }
-
         // using monotonic_buffer_resource = std::pmr::monotonic_buffer_resource;
         pool_ = std::make_shared<std::pmr::monotonic_buffer_resource>(handle_.get(),handle_.size(),
                     std::pmr::null_memory_resource());
@@ -74,13 +62,6 @@ public:
             pool_->deallocate(key,std::get<0>(value));
         }
         map_.clear();
-
-        // free lock
-        auto it = locks.find(std::string(handle_.name()));
-        if(it != locks.end())
-        {
-            locks.erase(it);
-        }
     }
 
 public:
@@ -95,10 +76,8 @@ public:
         auto pool_size = align_size(size + sizeof(uint32_t), alignof(std::max_align_t));
         void *pool_data = nullptr;
 
-        auto it = locks.find(std::string(handle_.name()));
-        if ( it != locks.end())
         {
-            std::lock_guard<SpinLock> l(*(it->second));
+            std::lock_guard<SpinLock> l(lock_);
             pool_data = pool_->allocate(pool_size);
         }
 
@@ -149,6 +128,7 @@ private:
     uint32_t id_;
     // shm handle
     Handle handle_;
+    SpinLock lock_;
     // shared memory manager
     std::shared_ptr<std::pmr::monotonic_buffer_resource> pool_;
     // already memory using map
