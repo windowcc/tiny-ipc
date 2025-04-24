@@ -69,9 +69,9 @@ public:
     {
         // free all apply memory
         // There may be some memory that has not been read properly
-        for (auto &it : map_)
+        for (auto &[key,value] : map_)
         {
-            pool_->deallocate(it.first,std::get<0>(it.second));
+            pool_->deallocate(key,std::get<0>(value));
         }
         map_.clear();
 
@@ -111,9 +111,7 @@ public:
         count->store(cnt,std::memory_order_relaxed);
         memcpy(static_cast<char*>(pool_data) + sizeof(uint32_t),data,size);
         
-        map_.insert(
-            {pool_data,std::make_tuple(pool_size,now)}
-        );
+        map_.emplace(pool_data,std::make_tuple(pool_size,now));
 
         return std::make_shared<Description>
         (
