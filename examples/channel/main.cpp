@@ -26,7 +26,7 @@ void do_send()
         }
         std::cout << "Write " << Count << " : " << (Count%2 == 1 ? buffer1 : buffer2) << "\n";
         ipc.write(std::to_string(Count) + " : " + (Count%2 == 1 ? buffer1 : buffer2));
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
