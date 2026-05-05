@@ -297,9 +297,7 @@ bool Ipc<Wr>::write(
 static std::string thread_id_to_string(
     const uint32_t &id)
 {
-    std::ostringstream oss;
-    oss << id;
-    return oss.str();
+    return std::to_string(id);
 }
 
 template <typename Wr>

@@ -4,7 +4,6 @@
 #include <config.h>
 #include <thread>
 #include <type_traits>
-#include <sstream>
 #include <memory>
 #include <functional>
 #include <unordered_map>
@@ -24,9 +23,7 @@ static constexpr uint32_t DEFAULT_TIMEOUT_VALUE = 10 * 1000; // mill
 
 static std::string thread_id_to_string(const uint32_t &id)
 {
-    std::ostringstream oss;
-    oss << id;
-    return oss.str();
+    return std::to_string(id);
 }
 
 // Just need to add a lock on the writer end
@@ -40,7 +37,8 @@ public:
         , pool_ {nullptr}
     {
         auto thread_id = std::this_thread::get_id();
-        id_ = *(uint32_t*)&thread_id;
+        std::hash<std::thread::id> hasher;
+        id_ = static_cast<uint32_t>(hasher(thread_id));
 
 
         auto name = DEFAULT_SHM_NAME + thread_id_to_string(id_);
@@ -87,7 +85,7 @@ public:
         }
 
         std::atomic<uint32_t> *count = static_cast<std::atomic<uint32_t>*>(pool_data);
-        count->store(cnt,std::memory_order_relaxed);
+        count->store(cnt, std::memory_order_release);
         memcpy(static_cast<char*>(pool_data) + sizeof(uint32_t),data,size);
         
         map_.emplace(pool_data, std::make_pair(pool_size,now));
@@ -112,7 +110,7 @@ private:
         {
             std::atomic<uint32_t> *count = static_cast<std::atomic<uint32_t>*>(it->first);
             auto &[key,value] = it->second;
-            if(!count->load() ||
+            if(!count->load(std::memory_order_acquire) ||
                 (std::chrono::duration_cast<std::chrono::milliseconds>(now - value).count() >= DEFAULT_TIMEOUT_VALUE))
             {
                 pool_->deallocate(it->first,key);
@@ -167,7 +165,7 @@ public:
         { 
             callback(&buf);
         }
-        static_cast<std::atomic<uint32_t>*>(pool_data)->fetch_sub(1, std::memory_order_relaxed);
+        static_cast<std::atomic<uint32_t>*>(pool_data)->fetch_sub(1, std::memory_order_acq_rel);
         return !(*static_cast<std::atomic<uint32_t>*>(pool_data));
     }
 
@@ -176,26 +174,20 @@ private:
         const uint32_t &id)
     {
         auto it = handles_.find(id);
-        if(it == handles_.end())
-        {
-            Handle handle;
-            auto name = DEFAULT_SHM_NAME + thread_id_to_string(id);
-            if (!handle.acquire(name.c_str(), DEFAULT_CACHE_SIZE, open))
-            {
-                return nullptr;
-            }
-            else
-            {
-                handles_.insert(
-                    {id, std::move(handle)}
-                );
-                return &(handles_[id]);
-            }
-        }
-        else
+        if(it != handles_.end())
         {
             return &(it->second);
         }
+
+        Handle handle;
+        auto name = DEFAULT_SHM_NAME + thread_id_to_string(id);
+        if (!handle.acquire(name.c_str(), DEFAULT_CACHE_SIZE, open))
+        {
+            return nullptr;
+        }
+
+        auto [insert_it, _] = handles_.insert({id, std::move(handle)});
+        return &(insert_it->second);
     }
 
 private:
